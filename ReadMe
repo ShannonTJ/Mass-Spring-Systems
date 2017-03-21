@@ -1,0 +1,48 @@
+CPSC 587 ASSIGNMENT 3
+SHANNON TJ 10101385
+
+
+HOW TO COMPILE:   make all
+HOW TO RUN:       ./A3
+
+
+
+OS + VERSION
+------------------
+Linux zone42-wd 4.8.15-200.fc24.x86_64 #1 SMP Thu Dec 15 23:09:22 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
+
+LSB Version:	:core-4.1-amd64:core-4.1-noarch:cxx-4.1-amd64:cxx-4.1-noarch:desktop-4.1-amd64:desktop-4.1-noarch:languages-4.1-amd64:languages-4.1-noarch:printing-4.1-amd64:printing-4.1-noarch
+Distributor ID:	Fedora
+Description:	Fedora release 24 (Twenty Four)
+Release:	24
+Codename:	TwentyFour
+
+
+
+MOUSE CONTROLS
+-------------------
+LEFT CLICK AND DRAG = MOVE CAMERA
+
+
+
+KEYBOARD CONTROLS
+-------------------
+W = MOVE FORWARD                 
+S = MOVE BACKWARD                
+A = MOVE LEFT                 
+D = MOVE RIGHT                 
+Q = MOVE UP                  
+E = MOVE DOWN  
+
+1 = SIMULATION 1
+2 = SIMULATION 2
+3 = SIMULATION 3
+4 = SIMULATION 4
+               
+ESC = QUIT PROGRAM
+
+
+
+REFERENCES
+------------------
+OPENGL TEMPLATE BY ANDREW OWENS
