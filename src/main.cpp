@@ -1,7 +1,7 @@
 /**
  * OpenGL Template By: 	Andrew Robert Owens
  * Modifications By: 	Shannon TJ
- * Date:				March 21, 2017
+ * Date:				March 22, 2017
  * Course:				CPSC 587 Computer Animation
  * 
  * University of Calgary
@@ -32,6 +32,8 @@
 #include "Mat4f.h"
 #include "OpenGLMatrixTools.h"
 #include "Camera.h"
+
+#define PI 3.14159265359
 
 using namespace std;
 using namespace glm;
@@ -88,6 +90,7 @@ int numSpring = 1;
 
 float damping = 0.8f;
 float timestep = 0.01f;
+float wind = 0.f;
 
 bool sim1 = true;
 bool sim2 = false;
@@ -269,13 +272,13 @@ void initSim3()
 	float x = -.9f;
 	float y = 3.5f;
 	float z = 0;
-	float k = 25;
+	float k = 1000;
 	float rLen = 0;
-	
+		
 	//Initialize the masses
 	for(int i = 0; i < numMass; i++)
 	{		
-		mCube = initMass(mCube, 0.3f, false, vec3(x,y,z));
+		mCube = initMass(mCube, 1.f, false, vec3(x,y,z));
 		masses3[i] = mCube;
 		x = x + 1.f;
 		
@@ -414,16 +417,16 @@ void initSim4()
 	float x = -2.f;
 	float y = 3.5f;
 	float z = 0;
-	float k = 25;
+	float k = 1000;
 	float rLen = 0;
 	
 	//Initialize the masses
 	for(int i = 0; i < numMass; i++)
 	{	
 		if(i == 0 || i == 2 || i == 4)
-			mCloth = initMass(mCloth, 0.5f, true, vec3(x,y,z));
+			mCloth = initMass(mCloth, 1.f, true, vec3(x,y,z));
 		else
-			mCloth = initMass(mCloth, 0.5f, false, vec3(x,y,z));
+			mCloth = initMass(mCloth, 1.f, false, vec3(x,y,z));
 		
 		masses4[i] = mCloth;	
 		x = x + 1.f;
@@ -503,6 +506,7 @@ void resolveForces(Mass *m)
 {	
 	//apply gravity and damping
 	vec3 gravity = vec3(0.f,-9.81f,0.f);
+	
 	vec3 vDamping = ((-damping)*(m->velocity))/m->mass;
 	
 	//apply all accelerations
@@ -514,7 +518,9 @@ void resolveForces(Mass *m)
 		if(sim3 && m->position.y < -2.f)
 		{
 			m->velocity = m->velocity + m->acc*timestep;
-			m->velocity = -m->velocity;
+			m->velocity.y = 0.f;
+			m->position = m->position + m->velocity*timestep;
+			m->position.y = -2.f;
 		}
 
 		else
