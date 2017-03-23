@@ -1,7 +1,7 @@
 /**
  * OpenGL Template By: 	Andrew Robert Owens
  * Modifications By: 	Shannon TJ
- * Date:				March 22, 2017
+ * Date:				March 23, 2017
  * Course:				CPSC 587 Computer Animation
  * 
  * University of Calgary
@@ -90,15 +90,11 @@ int numSpring = 1;
 
 float damping = 0.8f;
 float timestep = 0.01f;
-float wind = 0.f;
 
-bool sim1 = true;
-bool sim2 = false;
-bool sim3 = false;
-bool sim4 = false;
+bool sim3;
 
-std::vector<Vec3f> verts;
-std::vector<Vec3f> verts2;
+vector<Vec3f> verts;
+vector<Vec3f> verts2;
 
 //==================== FUNCTION DECLARATIONS ====================//
 void displayFunc();
@@ -125,7 +121,7 @@ void windowKeyFunc(GLFWwindow *window, int key, int scancode, int action,
 void moveCamera();
 void reloadMVPUniform();
 void reloadColorUniform(float r, float g, float b);
-std::string GL_ERROR();
+string GL_ERROR();
 int main(int, char **);
 
 //==================== FUNCTION DEFINITIONS ====================//
@@ -146,6 +142,9 @@ struct Spring
 	float restLength;
 };
 
+vector<Mass> masses;
+vector<Spring> springs;
+
 //Masses and Spring for sim1
 Mass m;
 Spring s;
@@ -161,19 +160,6 @@ Spring sCube;
 //Masses and springs for sim4
 Mass mCloth;
 Spring sCloth;
-
-//Arrays
-Spring springs1 [1];
-Mass masses1 [2];
-
-Spring springs2 [3];
-Mass masses2 [4];
-
-Spring springs3 [126];
-Mass masses3 [27];  
-
-Spring springs4[89];
-Mass masses4[30];
 
 //Get length between masses
 float getLength(Mass *a, Mass *b)
@@ -212,66 +198,89 @@ Spring initSpring(Spring ss, Mass *a, Mass *b, float k, float rLen)
 //Single spring
 void initSim1()
 {
-	numMass = 2;
-	numSpring = 1;
+	masses.clear();
+	springs.clear();
 	
 	m = initMass(m, 1.f, true, vec3(0,3.5f,0));
-	masses1[0] = m;
+	masses.push_back(m);
+	masses[0] = m;
 	
 	m = initMass(m, 1.f, false, vec3(2.f,2.f,0));	
-	masses1[1] = m;
+	masses.push_back(m);
+	masses[1] = m;
 	
-	s = initSpring(s, &masses1[0], &masses1[1], 25.f, 1.f);	
-	springs1[0] = s;
-	
-	sim1 = true;
-	sim2 = false;
-    sim3 = false;
-	sim4 = false;
+	s = initSpring(s, &masses[0], &masses[1], 25.f, 1.f);	
+	springs.push_back(s);
+	springs[0] = s;
+
+	numMass = masses.size();
+	numSpring = springs.size();
+	sim3 = false;
 }
 
 //Chain pendulum
 void initSim2()
 {
-	numMass = 4;
-	numSpring = 3;
+	masses.clear();
+	springs.clear();
 	
 	mChain = initMass(mChain, 1.f, true, vec3(0,3.5f,0));	
-	masses2[0] = mChain;
+	masses.push_back(mChain);
+	masses[0] = mChain;
 	
 	mChain = initMass(mChain, 0.5f, false, vec3(0,3.f,0));		
-	masses2[1] = mChain;
+	masses.push_back(mChain);
+	masses[1] = mChain;
 	
-	mChain = initMass(mChain, 0.5f, false, vec3(0.5f,3.5f,0));			
-	masses2[2] = mChain;
+	mChain = initMass(mChain, 0.5f, false, vec3(0.5f,3.5f,0));	
+	masses.push_back(mChain);		
+	masses[2] = mChain;
 	
-	mChain = initMass(mChain, 1.5f, false, vec3(1.f,3.5f,0));			
-	masses2[3] = mChain;
+	mChain = initMass(mChain, 1.5f, false, vec3(1.f,3.5f,0));	
+	masses.push_back(mChain);		
+	masses[3] = mChain;
 
-	sChain = initSpring(sChain, &masses2[0], &masses2[1], 25.f, 1.f);		
-	springs2[0] = sChain;
+	sChain = initSpring(sChain, &masses[0], &masses[1], 25.f, 1.f);	
+	springs.push_back(sChain);	
+	springs[0] = sChain;
 	
-	sChain = initSpring(sChain, &masses2[1], &masses2[2], 25.f, 1.f);		
-    springs2[1] = sChain;
+	sChain = initSpring(sChain, &masses[1], &masses[2], 25.f, 1.f);	
+	springs.push_back(sChain);		
+    springs[1] = sChain;
 	
-	sChain = initSpring(sChain, &masses2[2], &masses2[3], 25.f, 1.f);		
-	springs2[2] = sChain;
+	sChain = initSpring(sChain, &masses[2], &masses[3], 25.f, 1.f);	
+	springs.push_back(sChain);		
+	springs[2] = sChain;
 	
-	sim1 = false;
-	sim2 = true;
-    sim3 = false;
-	sim4 = false;
+	numMass = masses.size();
+	numSpring = springs.size();
+	sim3 = false;
 }
 
 //Jello cube
 void initSim3()
 {
-	numMass = 27;
-	numSpring = 126;
+	masses.clear();
+	springs.clear();
 	
-	float x = -.9f;
-	float y = 3.5f;
+	int count = 1;
+	int count2 = 1;
+	
+	//Size of cube
+	int numCube = 5;
+	numMass = numCube*numCube*numCube;
+	
+	//Mass coordinates
+	float originalX = -2.f;
+	float x = originalX;
+	float originalY = 5.5f;
+	float y = originalY;
 	float z = 0;
+	
+	//Size of gap between masses
+	float space = 1.f;
+	
+	//Spring stiffness + restlength
 	float k = 1000;
 	float rLen = 0;
 		
@@ -279,22 +288,33 @@ void initSim3()
 	for(int i = 0; i < numMass; i++)
 	{		
 		mCube = initMass(mCube, 1.f, false, vec3(x,y,z));
-		masses3[i] = mCube;
-		x = x + 1.f;
+		masses.push_back(mCube);
+		masses[i] = mCube;
+		x += space;
 		
-		if(i == 2 || i == 5 || i == 11 || i == 14 || i == 20 || i == 23)
+		//Initialize mass positions
+		if(i == (count*numCube - 1))
 		{
-			x = -.9f;
-			y = y - 1.f;
+			if(i/(numCube*numCube*count2 - 1) == 1)
+			{
+				//Move to a new row (Z axis)
+				x = originalX;
+				y = originalY;
+				z = z - space;
+				
+				count2++;
+				count++;					
+			}
+			//Move to a new row (Y axis)
+			else
+			{
+				x = originalX;
+				y = y - space;
+				
+				count++;
+			}
 		}
-		
-		else if(i == 8 || i == 17)
-		{
-			x = -.9f;
-			y = 3.5f;
-			z = z - 1.f;
-		}
-	}
+	}	
 	
 	//Initialize the springs
 	int m = 0;
@@ -302,141 +322,168 @@ void initSim3()
 	{
 		for(int j = 0; j < numMass; j++)
 		{
-			rLen = getLength(&masses3[i], &masses3[j]);
+			rLen = getLength(&masses[i], &masses[j]);
 			
-			//x axis
-			if(masses3[i].position.x - masses3[j].position.x == 1.f && masses3[i].position.y == masses3[j].position.y)
+			//X axis
+			if(masses[i].position.x - masses[j].position.x == space && masses[i].position.y == masses[j].position.y)
 			{
-				if(masses3[i].position.z == masses3[j].position.z)
+				if(masses[i].position.z == masses[j].position.z)
 				{
-					sCube = initSpring(sCube, &masses3[i], &masses3[j], k, rLen);
-					springs3[m] = sCube;
-					m = m + 1;
+					sCube = initSpring(sCube, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCube);	
+					springs[m] = sCube;
+					m++;
 				}
 			}
 						
-			//y axis
-			if(masses3[i].position.y - masses3[j].position.y == 1.f && masses3[i].position.z == masses3[j].position.z)
+			//Y axis
+			if(masses[i].position.y - masses[j].position.y == space && masses[i].position.z == masses[j].position.z)
 			{
-				if(masses3[i].position.x == masses3[j].position.x)
+				if(masses[i].position.x == masses[j].position.x)
 				{
-					sCube = initSpring(sCube, &masses3[i], &masses3[j], k, rLen);
-					springs3[m] = sCube;
-					m = m + 1;
+					sCube = initSpring(sCube, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCube);	
+					springs[m] = sCube;
+					m++;
 				}
 			}	
 			
-			//z axis
-			if(masses3[i].position.z - masses3[j].position.z == 1.f && masses3[i].position.y == masses3[j].position.y)
+			//Z axis
+			if(masses[i].position.z - masses[j].position.z == space && masses[i].position.y == masses[j].position.y)
 			{
-				if(masses3[i].position.x == masses3[j].position.x)
+				if(masses[i].position.x == masses[j].position.x)
 				{
-					sCube = initSpring(sCube, &masses3[i], &masses3[j], k, rLen);
-					springs3[m] = sCube;
-					m = m + 1;	
+					sCube = initSpring(sCube, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCube);	
+					springs[m] = sCube;
+					m++;	
 				}
-			}	
+			}
 			
 			//Side crosses
-			if(masses3[i].position.z - masses3[j].position.z == 1.f && masses3[i].position.y - masses3[j].position.y == 1.f)
+			if(masses[i].position.z - masses[j].position.z == space && masses[i].position.y - masses[j].position.y == space)
 			{
-				if(masses3[i].position.x == masses3[j].position.x)
+				if(masses[i].position.x == masses[j].position.x)
 				{
-					sCube = initSpring(sCube, &masses3[i], &masses3[j], k, rLen);
-					springs3[m] = sCube;
-					m = m + 1;		
+					sCube = initSpring(sCube, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCube);	
+					springs[m] = sCube;
+					m++;		
 				}
 			}			
 			
-			if(masses3[i].position.z - masses3[j].position.z == 1.f && masses3[i].position.y - masses3[j].position.y == -1.f)
+			if(masses[i].position.z - masses[j].position.z == space && masses[i].position.y - masses[j].position.y == -space)
 			{
-				if(masses3[i].position.x == masses3[j].position.x)
+				if(masses[i].position.x == masses[j].position.x)
 				{
-					sCube = initSpring(sCube, &masses3[i], &masses3[j], k, rLen);
-					springs3[m] = sCube;
-					m = m + 1;	
+					sCube = initSpring(sCube, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCube);	
+					springs[m] = sCube;
+					m++;	
 				}
 			}		
 		
 			//Horizontal crosses
-			if(masses3[i].position.z - masses3[j].position.z == 1.f && masses3[i].position.x - masses3[j].position.x == 1.f)
+			if(masses[i].position.z - masses[j].position.z == space && masses[i].position.x - masses[j].position.x == space)
 			{
-				if(masses3[i].position.y == masses3[j].position.y)
+				if(masses[i].position.y == masses[j].position.y)
 				{
-					sCube = initSpring(sCube, &masses3[i], &masses3[j], k, rLen);
-					springs3[m] = sCube;
-					m = m + 1;	
+					sCube = initSpring(sCube, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCube);	
+					springs[m] = sCube;
+					m++;	
 				}
 			}			
 			
-			if(masses3[i].position.z - masses3[j].position.z == 1.f && masses3[i].position.x - masses3[j].position.x == -1.f)
+			if(masses[i].position.z - masses[j].position.z == space && masses[i].position.x - masses[j].position.x == -space)
 			{
-				if(masses3[i].position.y == masses3[j].position.y)
+				if(masses[i].position.y == masses[j].position.y)
 				{
-					sCube = initSpring(sCube, &masses3[i], &masses3[j], k, rLen);
-					springs3[m] = sCube;
-					m = m + 1;	
+					sCube = initSpring(sCube, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCube);	
+					springs[m] = sCube;
+					m++;	
 				}
 			}			
 			
 			//Front and back crosses
-			if(masses3[i].position.x - masses3[j].position.x == 1.f && masses3[i].position.y - masses3[j].position.y == 1.f)
+			if(masses[i].position.x - masses[j].position.x == space && masses[i].position.y - masses[j].position.y == space)
 			{
-				if(masses3[i].position.z == masses3[j].position.z)
+				if(masses[i].position.z == masses[j].position.z)
 				{
-					sCube = initSpring(sCube, &masses3[i], &masses3[j], k, rLen);
-					springs3[m] = sCube;
-					m = m + 1;	
+					sCube = initSpring(sCube, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCube);	
+					springs[m] = sCube;
+					m++;	
 				}
 			}			
 			
-			if(masses3[i].position.x - masses3[j].position.x == 1.f && masses3[i].position.y - masses3[j].position.y == -1.f)
+			if(masses[i].position.x - masses[j].position.x == space && masses[i].position.y - masses[j].position.y == -space)
 			{
-				if(masses3[i].position.z == masses3[j].position.z)
+				if(masses[i].position.z == masses[j].position.z)
 				{
-					sCube = initSpring(sCube, &masses3[i], &masses3[j], k, rLen);
-					springs3[m] = sCube;
-					m = m + 1;		
+					sCube = initSpring(sCube, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCube);	
+					springs[m] = sCube;
+					m++;		
 				}
-			}				
+			} 				
 		}	
 	}
 	
-	sim1 = false;
-	sim2 = false;
-    sim3 = true;
-	sim4 = false;
+	numSpring = springs.size();
+	sim3 = true;
 }
 
 //Hanging cloth
 void initSim4()
 {
-	numMass = 30;
-	numSpring = 89;
+	masses.clear();
+	springs.clear(); 
 	
-	float x = -2.f;
+	int count = 1;
+	
+	//Size of cloth
+	int numCloth = 11;
+	int numRows = 7;
+	numMass = numCloth*numRows;
+	
+	//Mass coordinates
+	float originalX = -2.5f;
+	float x = originalX;
 	float y = 3.5f;
 	float z = 0;
-	float k = 1000;
+	
+	//Size of gap between masses
+	float xSpace = 0.5f;
+	float zSpace = 1.0f;
+	
+	//Spring stiffness + rest length
+	float k = 200;
 	float rLen = 0;
 	
 	//Initialize the masses
 	for(int i = 0; i < numMass; i++)
 	{	
-		if(i == 0 || i == 2 || i == 4)
+		//Initialize fixed points
+		if(i % 2 == 0 && i < numCloth)
 			mCloth = initMass(mCloth, 1.f, true, vec3(x,y,z));
+		//Initialize loose points
 		else
 			mCloth = initMass(mCloth, 1.f, false, vec3(x,y,z));
 		
-		masses4[i] = mCloth;	
-		x = x + 1.f;
+		masses.push_back(mCloth);
+		masses[i] = mCloth;	
+		x += xSpace;
 		
-		if(i == 4 || i == 9 || i == 14 || i == 19 || i == 24)
+		//Move to a new row (Z axis)
+		if(i == (count*numCloth - 1))
 		{
-			x = -2.f;
-			z = z - 1.f;
+			x = originalX;
+			z = z - zSpace;
+			count++;
 		}
-	}
+}
 	
 	//Initialize the springs
 	int m = 0;
@@ -444,62 +491,64 @@ void initSim4()
 	{
 		for(int j = 0; j < numMass; j++)
 		{
-			rLen = getLength(&masses4[i], &masses4[j]);
+			rLen = getLength(&masses[i], &masses[j]);
 			
 			//Vertical lines
-			if(masses4[i].position.x == masses4[j].position.x && masses4[i].position.z - masses4[j].position.z == 1.f)
+			if(masses[i].position.x == masses[j].position.x && masses[i].position.z - masses[j].position.z == zSpace)
 			{
-					sCloth = initSpring(sCloth, &masses4[i], &masses4[j], k, rLen);
-					springs4[m] = sCloth;
-					m = m + 1;
+					sCloth = initSpring(sCloth, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCloth);	
+					springs[m] = sCloth;
+					m++;
 			}
 			
 			//Horizontal lines
-			if(masses4[i].position.z == masses4[j].position.z && masses4[i].position.x - masses4[j].position.x == 1.f)
+			if(masses[i].position.z == masses[j].position.z && masses[i].position.x - masses[j].position.x == xSpace)
 			{
-					sCloth = initSpring(sCloth, &masses4[i], &masses4[j], k, rLen);									
-					springs4[m] = sCloth;
-					m = m + 1;
+					sCloth = initSpring(sCloth, &masses[i], &masses[j], k, rLen);									
+					springs.push_back(sCloth);	
+					springs[m] = sCloth;
+					m++;
 			}
 			
 			//Crossed lines
-			if(masses4[i].position.z - masses4[j].position.z == 1.f && masses4[i].position.x - masses4[j].position.x == 1.f)
+			if(masses[i].position.z - masses[j].position.z == zSpace && masses[i].position.x - masses[j].position.x == xSpace)
 			{
-					sCloth = initSpring(sCloth, &masses4[i], &masses4[j], k, rLen);
-					springs4[m] = sCloth;
-					m = m + 1;
+					sCloth = initSpring(sCloth, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCloth);	
+					springs[m] = sCloth;
+					m++;
 			}			
 			
-			if(masses4[i].position.z - masses4[j].position.z == 1.f && masses4[i].position.x - masses4[j].position.x == -1.f)
+			if(masses[i].position.z - masses[j].position.z == zSpace && masses[i].position.x - masses[j].position.x == -xSpace)
 			{
-					sCloth = initSpring(sCloth, &masses4[i], &masses4[j], k, rLen);
-					springs4[m] = sCloth;
-					m = m + 1;
+					sCloth = initSpring(sCloth, &masses[i], &masses[j], k, rLen);
+					springs.push_back(sCloth);	
+					springs[m] = sCloth;
+					m++;
 			}		
 		}
 	}
 	
-	sim1 = false;
-	sim2 = false;
-    sim3 = false;
-	sim4 = true;
+	numSpring = springs.size();
+	sim3 = false;
 }
 
 void applyForces(Spring s, Mass *a, Mass *b)
 {
 	//Get current length of spring
-	float springLength = getLength(a, b);
-	vec3 unitAB = (b->position - a->position)/springLength;
+	float springLength = getLength(s.a, s.b);
+	vec3 unitAB = (s.b->position - s.a->position)/springLength;
 	
 	//hooke = -k(x-x0)AB
 	vec3 hooke = (-s.stiffness)*(springLength - s.restLength)*unitAB;
 	
-	vec3 bAcc = hooke/(b->mass);
+	vec3 bAcc = hooke/(s.b->mass);
 	vec3 aAcc = -bAcc;
 
 	//Update acceleration for mass *a and *b
-	b->acc += bAcc;
-	a->acc += aAcc;
+	s.b->acc += bAcc;
+	s.a->acc += aAcc;
 }	
 	
 void resolveForces(Mass *m)
@@ -522,7 +571,6 @@ void resolveForces(Mass *m)
 			m->position = m->position + m->velocity*timestep;
 			m->position.y = -2.f;
 		}
-
 		else
 		{
 			m->velocity = m->velocity + m->acc*timestep;
@@ -749,50 +797,14 @@ int main(int argc, char **argv) {
 
     for(int i = 0; i < numSpring; i++)
     {
-		if(sim1)
-		{
-			applyForces(springs1[i], springs1[i].a, springs1[i].b);
-			animateSpring(springs1[i]);
-		}
-		else if(sim2)
-		{
-			applyForces(springs2[i], springs2[i].a, springs2[i].b);
-			animateSpring(springs2[i]);
-		}
-		else if(sim3)
-		{
-			applyForces(springs3[i], springs3[i].a, springs3[i].b);	
-			animateSpring(springs3[i]);
-		}	
-		else if(sim4)
-		{
-			applyForces(springs4[i], springs4[i].a, springs4[i].b);				
-			animateSpring(springs4[i]);
-		}
+			applyForces(springs[i], springs[i].a, springs[i].b);
+			animateSpring(springs[i]);
 	}
 	
 	for(int i = 0; i < numMass; i++)
 	{
-		if(sim1)
-		{
-			resolveForces(&masses1[i]);
-			animateQuad(masses1[i]);
-		}
-		else if(sim2)
-		{
-			resolveForces(&masses2[i]);	
-			animateQuad(masses2[i]);
-		}
-		else if(sim3)
-		{
-			resolveForces(&masses3[i]);	
-			animateQuad(masses3[i]);
-		}	
-		else if(sim4)
-		{
-			resolveForces(&masses4[i]);
-			animateQuad(masses4[i]);
-		}
+			resolveForces(&masses[i]);
+			animateQuad(masses[i]);
 	}
 	
     displayFunc();
